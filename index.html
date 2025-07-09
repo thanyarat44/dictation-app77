@@ -1,0 +1,160 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>โปรแกรมสุ่มคำศัพท์</title>
+  <style>
+    body {
+      font-family: 'Prompt', sans-serif;
+      background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+      color: white;
+      text-align: center;
+      padding: 20px;
+      margin: 0;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      color: black;
+      padding: 20px;
+      border-radius: 20px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.3);
+    }
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 10px;
+    }
+    input[type="text"] {
+      padding: 10px;
+      width: 70%;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 5px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    .btn-add { background-color: #2196f3; color: white; }
+    .btn-start { background-color: #4caf50; color: white; }
+    .btn-next { background-color: #03a9f4; color: white; }
+    .btn-clear { background-color: #f44336; color: white; }
+    .btn-reset { background-color: #9c27b0; color: white; }
+    .word-box {
+      margin-top: 20px;
+      padding: 20px;
+      background-color: orange;
+      color: white;
+      font-size: 2rem;
+      border-radius: 12px;
+    }
+    .word-list span {
+      background-color: #e0e0e0;
+      border-radius: 20px;
+      padding: 5px 10px;
+      margin: 5px;
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎯 โปรแกรมสุ่มคำศัพท์</h1>
+    <p>สำหรับฝึกเขียนตามคำบอก</p>
+    <input type="text" id="wordInput" placeholder="พิมพ์คำศัพท์ที่ต้องการ...">
+    <button class="btn-add" onclick="addWord()">เพิ่ม</button>
+    <div class="word-list" id="wordList"></div>
+    <button class="btn-start" onclick="start()">🎲 เริ่มสุ่มคำ</button>
+    <button class="btn-clear" onclick="clearWords()">🗑 ล้างทั้งหมด</button>
+
+    <div id="wordSection" style="display:none;">
+      <p>คำที่เหลือ: <span id="remainingCount"></span></p>
+      <div class="word-box" id="currentWord">-</div>
+      <button class="btn-next" onclick="nextWord()">🔁 คำถัดไป</button>
+      <button class="btn-reset" onclick="start()">🔄 เริ่มใหม่</button>
+    </div>
+  </div>
+
+  <script>
+    let words = [];
+    let used = [];
+
+    function addWord() {
+      const input = document.getElementById("wordInput");
+      const word = input.value.trim();
+      if (word) {
+        words.push(word);
+        input.value = "";
+        updateWordList();
+      }
+    }
+
+    function updateWordList() {
+      const container = document.getElementById("wordList");
+      container.innerHTML = "";
+      words.forEach(word => {
+        const span = document.createElement("span");
+        span.textContent = word;
+        container.appendChild(span);
+      });
+    }
+
+    function start() {
+      used = [];
+      if (words.length === 0) return alert("กรุณาเพิ่มคำก่อน!");
+      document.getElementById("wordSection").style.display = "block";
+      nextWord();
+    }
+
+    function nextWord() {
+      const remaining = words.filter(w => !used.includes(w));
+      if (remaining.length === 0) {
+        document.getElementById("currentWord").textContent = "🎉 หมดคำศัพท์แล้ว!";
+        document.getElementById("remainingCount").textContent = "0";
+        return;
+      }
+      const randIndex = Math.floor(Math.random() * remaining.length);
+      const word = remaining[randIndex];
+      used.push(word);
+      document.getElementById("currentWord").textContent = word;
+      document.getElementById("remainingCount").textContent = words.length - used.length;
+      speak(word, 3);
+    }
+
+    function speak(text, times = 3) {
+      const synth = window.speechSynthesis;
+      let count = 0;
+
+      const isEnglish = /^[a-zA-Z\s]+$/.test(text);
+
+      function repeat() {
+        if (count < times) {
+          const utter = new SpeechSynthesisUtterance(text);
+          utter.lang = isEnglish ? "en-US" : "th-TH";
+          utter.rate = 0.6;
+          synth.speak(utter);
+          count++;
+          utter.onend = () => {
+            setTimeout(repeat, 2000);
+          };
+        }
+      }
+
+      repeat();
+    }
+
+    function clearWords() {
+      words = [];
+      used = [];
+      updateWordList();
+      document.getElementById("wordSection").style.display = "none";
+    }
+  </script>
+</body>
+</html>
